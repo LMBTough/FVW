@@ -2,7 +2,29 @@ import torch
 from utils import normalization
 from tqdm import tqdm
 import numpy as np
+import re
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
+def parse_layer(layer):
+    reg = re.compile("\.\d+\.")
+    finded = reg.findall(layer)
+    if len(finded) == 0:
+        pass
+    else:
+        for f in finded:
+            f = f[1:-1]
+            layer = layer.replace(f".{f}.", f"[{f}].")
+    return layer
+
+
+def update_layer(net, layer, alpha):
+    # layer = "conv1.weight"
+    layer = parse_layer(layer)
+    grad = np.array(eval("net." + layer + ".grad.cpu().detach().numpy()"))
+    weight = eval("net." + layer + ".cpu().detach().numpy()") + \
+        alpha * np.sign(grad)
+    exec("net." + layer + " = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
+    return grad
 
 
 def test_model(net, test_loader):
@@ -37,9 +59,7 @@ def attack(train_loader,layers,load_model_func,num_steps=5,alpha=0.00025):
             num += x.shape[0]
         print(total_loss / num)
         for layer in layers:
-            grad = np.array(eval("net." + layer + ".weight.grad.cpu().detach().numpy()"))
-            weight = eval("net." + layer + ".weight.cpu().detach().numpy()") + alpha * np.sign(grad)
-            exec("net." + layer + ".weight = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
+            grad = update_layer(net, layer, alpha)
             if totals[layer] is None:
                 totals[layer] = -(alpha * np.sign(grad)) * grad / num
             else:

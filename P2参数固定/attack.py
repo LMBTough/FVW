@@ -19,8 +19,8 @@ def test_model(net, test_loader):
     return correct, total
 
 
-def attack(train_loader,layers,load_model_func,num_steps=5,alpha=0.00025):
-    net = load_model_func()
+def attack(train_loader,layers,load_model_func,num_steps=5,alpha=0.00025,num_classes=4):
+    net = load_model_func(num_classes=num_classes)
     loss_func = torch.nn.CrossEntropyLoss(reduction='sum')
     totals = dict()
     for layer in layers:

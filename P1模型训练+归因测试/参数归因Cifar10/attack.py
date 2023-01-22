@@ -1,6 +1,7 @@
 import torch
 from utils import normalization
 from tqdm import tqdm
+import re
 import numpy as np
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -19,16 +20,38 @@ def test_model(net, test_loader):
     return correct, total
 
 
-def attack(train_loader,layers,load_model_func,num_steps=5,alpha=0.00025):
+def parse_param(param):
+    reg = re.compile("\.\d+\.")
+    finded = reg.findall(param)
+    if len(finded) == 0:
+        pass
+    else:
+        for f in finded:
+            f = f[1:-1]
+            param = param.replace(f".{f}.", f"[{f}].")
+    return param
+
+
+def update_param(net, param, alpha):
+    # param = "conv1.weight"
+    param = parse_param(param)
+    grad = np.array(eval("net." + param + ".grad.cpu().detach().numpy()"))
+    weight = eval("net." + param + ".cpu().detach().numpy()") + \
+        alpha * np.sign(grad)
+    exec("net." + param + " = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
+    return grad
+
+
+def attack(train_loader, params, load_model_func, num_steps=5, alpha=0.00025):
     net = load_model_func()
     loss_func = torch.nn.CrossEntropyLoss(reduction='sum')
     totals = dict()
-    for layer in layers:
-        totals[layer] = None
+    for param in params:
+        totals[param] = None
     for _ in range(num_steps):
         total_loss = 0
         num = 0
-        for x, y in tqdm(train_loader,total=len(train_loader)):
+        for x, y in tqdm(train_loader, total=len(train_loader)):
             x, y = x.to(device), y.to(device)
             outputs = net(x)
             loss = loss_func(outputs, y)
@@ -36,20 +59,21 @@ def attack(train_loader,layers,load_model_func,num_steps=5,alpha=0.00025):
             loss.backward()
             num += x.shape[0]
         print(total_loss / num)
-        for layer in layers:
-            grad = np.array(eval("net." + layer + ".weight.grad.cpu().detach().numpy()"))
-            weight = eval("net." + layer + ".weight.cpu().detach().numpy()") + alpha * np.sign(grad)
-            exec("net." + layer + ".weight = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
-            if totals[layer] is None:
-                totals[layer] = -(alpha * np.sign(grad)) * grad / num
+        for param in params:
+            # grad = np.array(eval("net." + param + ".weight.grad.cpu().detach().numpy()"))
+            # weight = eval("net." + param + ".weight.cpu().detach().numpy()") + alpha * np.sign(grad)
+            # exec("net." + param + ".weight = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
+            grad = update_param(net, param, alpha)
+            if totals[param] is None:
+                totals[param] = -(alpha * np.sign(grad)) * grad / num
             else:
-                totals[layer] += -(alpha * np.sign(grad)) * grad / num
+                totals[param] += -(alpha * np.sign(grad)) * grad / num
         net.zero_grad()
-    layer_totals = list()
-    for layer in layers:
-        layer_totals.append(totals[layer])
-    layer_totals = np.array(layer_totals)
-    layer_totals = normalization(np.abs(layer_totals))
-    for layer in layers:
-        totals[layer] = layer_totals[layers.index(layer)]
+    param_totals = list()
+    for param in params:
+        param_totals.append(totals[param])
+    param_totals = np.array(param_totals)
+    param_totals = normalization(np.abs(param_totals))
+    for param in params:
+        totals[param] = param_totals[params.index(param)]
     return totals
