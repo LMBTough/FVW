@@ -5,25 +5,25 @@ import numpy as np
 import re
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-def parse_layer(layer):
+def parse_param(param):
     reg = re.compile("\.\d+\.")
-    finded = reg.findall(layer)
+    finded = reg.findall(param)
     if len(finded) == 0:
         pass
     else:
         for f in finded:
             f = f[1:-1]
-            layer = layer.replace(f".{f}.", f"[{f}].")
-    return layer
+            param = param.replace(f".{f}.", f"[{f}].")
+    return param
 
 
-def update_layer(net, layer, alpha):
-    # layer = "conv1.weight"
-    layer = parse_layer(layer)
-    grad = np.array(eval("net." + layer + ".grad.cpu().detach().numpy()"))
-    weight = eval("net." + layer + ".cpu().detach().numpy()") + \
+def update_param(net, param, alpha):
+    # param = "conv1.weight"
+    param = parse_param(param)
+    grad = np.array(eval("net." + param + ".grad.cpu().detach().numpy()"))
+    weight = eval("net." + param + ".cpu().detach().numpy()") + \
         alpha * np.sign(grad)
-    exec("net." + layer + " = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
+    exec("net." + param + " = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
     return grad
 
 
@@ -41,12 +41,12 @@ def test_model(net, test_loader):
     return correct, total
 
 
-def attack(train_loader,layers,load_model_func,num_steps=5,alpha=0.00025):
+def attack(train_loader,params,load_model_func,num_steps=5,alpha=0.00025):
     net = load_model_func()
     loss_func = torch.nn.CrossEntropyLoss(reduction='sum')
     totals = dict()
-    for layer in layers:
-        totals[layer] = None
+    for param in params:
+        totals[param] = None
     for _ in range(num_steps):
         total_loss = 0
         num = 0
@@ -58,18 +58,18 @@ def attack(train_loader,layers,load_model_func,num_steps=5,alpha=0.00025):
             loss.backward()
             num += x.shape[0]
         print(total_loss / num)
-        for layer in layers:
-            grad = update_layer(net, layer, alpha)
-            if totals[layer] is None:
-                totals[layer] = -(alpha * np.sign(grad)) * grad / num
+        for param in params:
+            grad = update_param(net, param, alpha)
+            if totals[param] is None:
+                totals[param] = -(alpha * np.sign(grad)) * grad / num
             else:
-                totals[layer] += -(alpha * np.sign(grad)) * grad / num
+                totals[param] += -(alpha * np.sign(grad)) * grad / num
         net.zero_grad()
-    layer_totals = list()
-    for layer in layers:
-        layer_totals.append(totals[layer])
-    layer_totals = np.array(layer_totals)
-    layer_totals = normalization(np.abs(layer_totals))
-    for layer in layers:
-        totals[layer] = layer_totals[layers.index(layer)]
+    param_totals = list()
+    for param in params:
+        param_totals.append(totals[param])
+    param_totals = np.array(param_totals)
+    param_totals = normalization(np.abs(param_totals))
+    for param in params:
+        totals[param] = param_totals[params.index(param)]
     return totals
