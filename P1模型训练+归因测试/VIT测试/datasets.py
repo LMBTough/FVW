@@ -17,13 +17,13 @@ def load_cifar10(root='./data', download=True):
     train_targets = np.array(train_dataset.targets)
     test_targets = np.array(test_dataset.targets)
     test_dataloader_all = DataLoader(
-        test_dataset, batch_size=256, shuffle=False)
+        test_dataset, batch_size=64, shuffle=False)
     num_classes = 10
     train_dataloaders = []
     test_dataloaders = []
     for i in range(num_classes):
-        train_dataloaders.append(DataLoader(train_dataset, batch_size=256, shuffle=False,
+        train_dataloaders.append(DataLoader(train_dataset, batch_size=64, shuffle=False,
                                  sampler=SubsetRandomSampler(np.where(train_targets == i)[0])))
-        test_dataloaders.append(DataLoader(test_dataset, batch_size=256, shuffle=False,
+        test_dataloaders.append(DataLoader(test_dataset, batch_size=64, shuffle=False,
                                 sampler=SubsetRandomSampler(np.where(test_targets == i)[0])))
     return train_dataloaders, test_dataloaders, test_dataloader_all

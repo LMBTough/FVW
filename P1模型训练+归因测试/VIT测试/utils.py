@@ -5,6 +5,7 @@ import torch
 from pathlib import Path
 from collections import OrderedDict
 from datetime import datetime
+import numpy as np
 import importlib
 
 def ensure_dir(dirname):
@@ -172,3 +173,17 @@ class TensorboardWriter():
             except AttributeError:
                 raise AttributeError("type object '{}' has no attribute '{}'".format(self.selected_module, name))
             return attr
+        
+def normalization(x):
+    min = -np.inf
+    max = np.inf
+    for x_ in x:
+        if np.min(x_) > min:
+            min = np.min(x_)
+    x = [x_ - min for x_ in x]
+    for x_ in x:
+        if np.max(x_) < max:
+            max = np.max(x_)
+    x = [x_ / max for x_ in x]
+    x = np.array(x)
+    return x
