@@ -60,9 +60,6 @@ def attack(train_loader, params, load_model_func, num_steps=5, alpha=0.00025):
             num += x.shape[0]
         print(total_loss / num)
         for param in params:
-            # grad = np.array(eval("net." + param + ".weight.grad.cpu().detach().numpy()"))
-            # weight = eval("net." + param + ".weight.cpu().detach().numpy()") + alpha * np.sign(grad)
-            # exec("net." + param + ".weight = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
             grad = update_param(net, param, alpha)
             if totals[param] is None:
                 totals[param] = -(alpha * np.sign(grad)) * grad / num
