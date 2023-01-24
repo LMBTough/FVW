@@ -49,8 +49,8 @@ def update_param(net, param, alpha, op="add"):
     return grad
 
 
-def attack(train_loader, params, load_model_func, num_steps=5, alpha=0.00025, op="add",num_classes=6):
-    net = load_model_func(num_classes=num_classes)
+def attack(train_loader, params, load_model_func, num_steps=5, alpha=0.00025, op="add"):
+    net = load_model_func()
     loss_func = torch.nn.CrossEntropyLoss(reduction='sum')
     totals = dict()
     for param in params:
@@ -77,7 +77,6 @@ def attack(train_loader, params, load_model_func, num_steps=5, alpha=0.00025, op
     for param in params:
         param_totals.append(totals[param])
     param_totals = np.array(param_totals)
-    param_totals = normalization(np.abs(param_totals))
     for param in params:
         totals[param] = param_totals[params.index(param)]
     return totals
