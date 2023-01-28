@@ -59,9 +59,12 @@ def attack(train_loader, params, load_model_func, norm=True, num_steps=5, alpha=
             outputs = net(x)
             loss = loss_func(outputs, y)
             regularization_loss = 0
-            for param in params:
+            for param in net.parameters():
                 regularization_loss += torch.norm(param)
-            loss = loss + 0.01 * regularization_loss
+            if op == "add":
+                loss = loss - 0.01 * regularization_loss
+            elif op == "minus":
+                loss = loss + 0.01 * regularization_loss
             total_loss = loss.item() + total_loss
             loss.backward()
             num += x.shape[0]

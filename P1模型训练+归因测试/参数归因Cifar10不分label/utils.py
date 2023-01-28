@@ -21,7 +21,7 @@ def caculate_param_remove(all_param_names, all_totals, net, thre=0.25):
     for i in range(len(all_totals)):
         totals = all_totals[i]
         totals = [totals[param] for param in all_param_names]
-        param_weights = [eval("net." + parse_param(param) + ".cpu().detach().numpy()")
+        param_weights = [eval("net." + parse_param(param) + ".cpu().detach().numpy()", {"net": net})
                          for param in all_param_names]
         combine = [np.abs(total * weight)
                    for total, weight in zip(totals, param_weights)]
@@ -36,6 +36,7 @@ def caculate_param_remove(all_param_names, all_totals, net, thre=0.25):
             else:
                 t = combine[idx] > threshold
                 param_remove[param] = param_remove[param] | t
+    return param_remove
 
 
 def normalization(x):

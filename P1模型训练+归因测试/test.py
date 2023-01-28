@@ -11,11 +11,13 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torchvision
 import pickle as pkl
+from learn2learn.vision.datasets import MiniImagenet
 from tqdm.notebook import tqdm
 from attack import attack, parse_param, test_model
 from utils import get_device, caculate_param_remove
 import random
 device = get_device()
+
 file_name = os.path.basename(__file__)
 log_name = file_name.split(".")[0] + ".log"
 log_file = open(log_name, "w")
@@ -38,7 +40,8 @@ all_param_names = list()
 for name, param in model.named_parameters():
     if not "bn" in name and not "shortcut.1" in name:
         all_param_names.append(name)
-all_param_names = all_param_names[:-2]  # %%
+all_param_names = all_param_names[:-2]
+# %%
 train_loaders, test_dataloaders, train_dataloader_all, test_dataloader_all = load_cifar10()
 all_totals = list()
 for i in range(10):
@@ -59,12 +62,12 @@ for param in param_remove:
     all_num += param_remove[param].size
     print(param, param_remove[param].mean())
 # %%
-temp / all_num
+log_file.write("保留率: " + str(temp / all_num) + "\n")
 # %%
 with torch.no_grad():
     net = load_cifar10_resnet50()
     preds, labels = test_model(net, test_dataloader_all)
-    print("原始准确率", (preds.argmax(-1) == labels).mean())
+    log_file.write("原始准确率: " + str((preds.argmax(-1) == labels).mean()) + "\n")
 # %%
 with torch.no_grad():
     net = load_cifar10_resnet50()
@@ -75,7 +78,7 @@ with torch.no_grad():
         except:
             exec("net." + param_ + "[~param_remove[param],:] = 0")
     preds, labels = test_model(net, test_dataloader_all)
-    print("现在准确率", (preds.argmax(-1) == labels).mean())
+    log_file.write("现在准确率: " + str((preds.argmax(-1) == labels).mean()) + "\n")
 # %%
 with torch.no_grad():
     net = load_cifar10_resnet50()
@@ -93,6 +96,9 @@ with torch.no_grad():
             exec("net." + param_ +
                  "[eval('net.' + param_ + '.cpu().detach().numpy()') < threshold,:] = 0")
     preds, labels = test_model(net, test_dataloader_all)
-    print("对比实验准确率", (preds.argmax(-1) == labels).mean())
+    log_file.write(
+        "对比实验准确率: " + str((preds.argmax(-1) == labels).mean()) + "\n")
 # %%
 # %%
+
+log_file.close()
