@@ -1,7 +1,8 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-device = "cuda" if torch.cuda.is_available() else "cpu"
+from utils import get_device
+device = get_device()
 
 class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes, **kwargs):
@@ -71,18 +72,6 @@ class Bottleneck(nn.Module):
 def load_cifar10_resnet50():
     model = ResNet(Bottleneck, [3, 4, 6, 3], 10)
     state_dict = torch.load("weights/CIFAR10_Resnet50_weights.pth", device)
-    for key in list(state_dict.keys()):
-        if key.startswith('module.'):
-            state_dict[key[7:]] = state_dict[key]
-            del state_dict[key]
-    model.load_state_dict(state_dict)
-    model.to(device)
-    model.eval()
-    return model
-
-def load_cifar100_resnet50():
-    model = ResNet(Bottleneck, [3, 4, 6, 3], 100)
-    state_dict = torch.load("weights/CIFAR100_Resnet50_weights.pth", device)
     for key in list(state_dict.keys()):
         if key.startswith('module.'):
             state_dict[key[7:]] = state_dict[key]

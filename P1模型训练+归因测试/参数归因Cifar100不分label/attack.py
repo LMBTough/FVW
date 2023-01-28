@@ -1,15 +1,9 @@
 import torch
-from utils import normalization
-from sklearn.metrics import confusion_matrix
-from tqdm import tqdm
+from utils import normalization,get_device
+from tqdm.notebook import tqdm
 import re
 import numpy as np
-import matplotlib.pyplot as plt
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-def softmax(x):
-    x = np.exp(x) / np.sum(np.exp(x), axis = 1, keepdims = True)
-    return x
+device = get_device()
 
 def test_model(net, test_loader):
     net.eval()
@@ -39,7 +33,6 @@ def parse_param(param):
 
 
 def update_param(net, param, alpha, op="add"):
-    # param = "conv1.weight"
     param = parse_param(param)
     grad = np.array(eval("net." + param + ".grad.cpu().detach().numpy()"))
     if op == "add":
@@ -48,19 +41,17 @@ def update_param(net, param, alpha, op="add"):
     elif op == "minus":
         weight = eval("net." + param + ".cpu().detach().numpy()") - \
             alpha * np.sign(grad)
-    # weight = eval("net." + param + ".cpu().detach().numpy()") + \
-    #     alpha * np.sign(grad)
     exec("net." + param + " = torch.nn.Parameter(torch.from_numpy(weight).to(device))")
     return grad
 
 
-def attack(train_loader, params, load_model_func, train_dataloader_all, num_steps=5, alpha=0.00025, op="add"):
+def attack(train_loader, params, load_model_func, norm=True, num_steps=5, alpha=0.00025, op="add"):
     net = load_model_func()
     loss_func = torch.nn.CrossEntropyLoss(reduction='sum')
     totals = dict()
     for param in params:
         totals[param] = None
-    for _ in range(num_steps):
+    for _ in tqdm(range(num_steps)):
         total_loss = 0
         num = 0
         for x, y in tqdm(train_loader, total=len(train_loader)):
@@ -78,21 +69,12 @@ def attack(train_loader, params, load_model_func, train_dataloader_all, num_step
             else:
                 totals[param] += -(alpha * np.sign(grad)) * grad / num
         net.zero_grad()
-        # preds, labels = test_model(net, train_dataloader_all)
-        # print(np.mean(np.argmax(preds, axis=-1) == labels))
-        # print(confusion_matrix(labels, np.argmax(preds, axis=-1)))
-        # # plt.figure()
-        # plt.figure()
-        # preds, labels = test_model(net, train_loader)
-        # clz = labels[0]
-        # preds = softmax(preds)
-        # plt.hist(preds[:, clz], bins=100)
-        # plt.show()
     param_totals = list()
     for param in params:
         param_totals.append(totals[param])
-    param_totals = np.array(param_totals)
-    param_totals = normalization(np.abs(param_totals))
+    param_totals = np.array(param_totals,dtype=object)
+    if norm:
+        param_totals = normalization(np.abs(param_totals))
     for param in params:
         totals[param] = param_totals[params.index(param)]
     return totals
