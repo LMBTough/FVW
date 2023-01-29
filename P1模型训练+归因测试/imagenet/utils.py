@@ -6,12 +6,12 @@ def parse_param(param):
     reg = re.compile("\.\d+\.")
     finded = reg.findall(param)
     if len(finded) == 0:
-        pass
+        return param
     else:
         for f in finded:
             f = f[1:-1]
             param = param.replace(f".{f}.", f"[{f}].")
-    return param
+    return parse_param(param)
 
 
 def caculate_param_remove(all_param_names, all_totals, net, thre=0.25):

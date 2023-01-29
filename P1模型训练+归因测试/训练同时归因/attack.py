@@ -10,7 +10,7 @@ def test_model(net, test_loader):
     preds = list()
     labels = list()
     with torch.no_grad():
-        for x, y in tqdm(test_loader, total=len(test_loader)):
+        for x, y in test_loader:
             x, y = x.to(device), y.to(device)
             outputs = net(x)
             preds.append(outputs.cpu().detach().numpy())
@@ -45,8 +45,7 @@ def update_param(net, param, alpha, op="add"):
     return grad
 
 
-def attack(train_loader, params, load_model_func, norm=True, num_steps=5, alpha=0.00025, op="add"):
-    net = load_model_func()
+def attack(train_loader, params, net, norm=True, num_steps=5, alpha=0.00025, op="add"):
     loss_func = torch.nn.CrossEntropyLoss(reduction='sum')
     totals = dict()
     for param in params:
@@ -68,7 +67,7 @@ def attack(train_loader, params, load_model_func, norm=True, num_steps=5, alpha=
             total_loss = loss.item() + total_loss
             loss.backward()
             num += x.shape[0]
-        print(total_loss / num)
+        # print(total_loss / num)
         for param in params:
             grad = update_param(net, param, alpha, op=op)
             if totals[param] is None:
