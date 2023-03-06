@@ -1,6 +1,9 @@
 # FVW
 Implementation of [FVW: Finding Valuable Weight on Deep Neural Network for Model Pruning]
 
+## Attention
+Please download the weights file from [here](https://drive.google.com/file/d/1UXGUXzU83i69bJRyioAuuEUDQ0STAsgq/view?usp=share_link) and extract it to the `masks/weights` folder. The weights file contains the weights of the model before pruning.
+
 ## Setup
 Run `pip install -r requirements.txt` to install the dependencies. 
 
