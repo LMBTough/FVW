@@ -33,11 +33,7 @@ def load_cifar10(root='./data', download=True):
         test_dataloaders.append(DataLoader(test_dataset, batch_size=256, shuffle=False, pin_memory=True,
                                 sampler=SubsetRandomSampler(np.where(test_targets // 2 == i)[0])))
 
-    data_min = np.min((0 - np.array([0.5, 0.5, 0.5])) /
-                      np.array([0.5, 0.5, 0.5]))
-    data_max = np.max((1 - np.array([0.5, 0.5, 0.5])) /
-                      np.array([0.5, 0.5, 0.5]))
-    return train_dataloaders, test_dataloaders, train_dataloader_all, test_dataloader_all, data_min, data_max
+    return train_dataloaders, test_dataloaders, train_dataloader_all, test_dataloader_all
 
 
 def load_cifar100(root='./data', download=True):
@@ -64,11 +60,8 @@ def load_cifar100(root='./data', download=True):
                                  sampler=SubsetRandomSampler(np.where(train_targets // 25 == i)[0])))
         test_dataloaders.append(DataLoader(test_dataset, batch_size=256, shuffle=False, pin_memory=True,
                                 sampler=SubsetRandomSampler(np.where(test_targets // 25 == i)[0])))
-    data_min = np.min((0 - np.array([0.5, 0.5, 0.5])) /
-                      np.array([0.5, 0.5, 0.5]))
-    data_max = np.max((1 - np.array([0.5, 0.5, 0.5])) /
-                      np.array([0.5, 0.5, 0.5]))
-    return train_dataloaders, test_dataloaders, train_dataloader_all, test_dataloader_all, data_min, data_max
+
+    return train_dataloaders, test_dataloaders, train_dataloader_all, test_dataloader_all
 
 
 def load_caltech_101(root='./data', download=True):
@@ -106,8 +99,4 @@ def load_caltech_101(root='./data', download=True):
         test_dataloaders.append(DataLoader(test_dataset, batch_size=256, shuffle=False, pin_memory=True,
                                 sampler=SubsetRandomSampler(np.where(test_targets // 25 == i)[0])))
 
-    data_min = np.min((0 - np.array([0.485, 0.456, 0.406])) /
-                      np.array([0.229, 0.224, 0.225]))
-    data_max = np.max((1 - np.array([0.485, 0.456, 0.406])) /
-                      np.array([0.229, 0.224, 0.225]))
-    return train_dataloaders, test_dataloaders, train_dataloader_all, test_dataloader_all, data_min, data_max
+    return train_dataloaders, test_dataloaders, train_dataloader_all, test_dataloader_all
