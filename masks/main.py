@@ -156,6 +156,7 @@ if __name__ == "__main__":
         acc = test_model(prune_model(ori_model, param_remove,
                          all_param_names), test_dataloader_all)
         ratio = calculate_pruned(model, masks)
+        print(f"iters: {iters}, acc: {acc}, ratio: {ratio}")
         if not os.path.exists(f"masks_{args.dataset}"):
             os.mkdir(f"masks_{args.dataset}")
         pkl.dump(masks, open(

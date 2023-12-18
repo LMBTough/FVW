@@ -105,13 +105,13 @@ def resnet50(dataset="cifar10"):
     else:
         raise NotImplementedError
     model = ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes)
-    # state_dict = torch.load(
-    #     f"weights/{dataset}_resnet50_weights.pth", map_location=device)
-    # for key in list(state_dict.keys()):
-    #     if key.startswith('module.'):
-    #         state_dict[key[7:]] = state_dict[key]
-    #         del state_dict[key]
-    # model.load_state_dict(state_dict)
-    # model.to(device)
-    # model.eval()
+    state_dict = torch.load(
+        f"weights/{dataset}_resnet50_weights.pth", map_location=device)
+    for key in list(state_dict.keys()):
+        if key.startswith('module.'):
+            state_dict[key[7:]] = state_dict[key]
+            del state_dict[key]
+    model.load_state_dict(state_dict)
+    model.to(device)
+    model.eval()
     return model
