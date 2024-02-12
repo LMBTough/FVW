@@ -1,31 +1,56 @@
-# FVW
-Implementation of [FVW: Finding Valuable Weight on Deep Neural Network for Model Pruning]
+<div align="center">
 
-## Attention
-Please download the weights file from [here](https://drive.google.com/file/d/1UXGUXzU83i69bJRyioAuuEUDQ0STAsgq/view?usp=share_link) and extract it to the `masks/weights` folder. The weights file contains the weights of the model before pruning.
+# FVW: Identifying and Leveraging Valuable Weights in Deep Neural Networks for Efficient Model Pruning
 
-## Setup
-Run `pip install -r requirements.txt` to install the dependencies. 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Venue:CIKM 2023](https://img.shields.io/badge/Venue-CIKM%202023-007CFF)](https://uobevents.eventsair.com/cikm2023/)
 
+</div>
+
+
+## Abstract
+This repository houses the official implementation of the "FVW: Finding Valuable Weight on Deep Neural Network for Model Pruning" methodology, a novel approach aimed at enhancing the computational efficiency of deep neural networks. By identifying and leveraging the most valuable weights within a network, our method significantly reduces the model's complexity without compromising its predictive performance. This technique is particularly beneficial for deployment in resource-constrained environments.
+
+## Prerequisites
+Before proceeding, ensure the model weights are prepared:
+- Download the pre-pruning model weights from [this link](https://drive.google.com/file/d/1UXGUXzU83i69bJRyioAuuEUDQ0STAsgq/view?usp=share_link).
+- Extract the weights archive into the `masks/weights` directory, ensuring the model is ready for pruning and further experimentation.
+
+## Installation
+To set up the environment for running the FVW implementation, execute the following command to install the necessary Python dependencies listed in `requirements.txt`:
 
 ```
-numpy==1.23.3
-torch==1.12.1+cu113
-torchvision==0.13.1+cu113
-tqdm==4.64.1
+pip install -r requirements.txt
 ```
 
-## Runing command
-### get the mask
-```bash
-cd masks
-python main.py --dataset cifar10 --thre 0.98 --alpha 0.00000001 --num_steps 2 --iters 100 --op add --labeled --sum
+### Dependencies
+- numpy==1.23.3
+- torch==1.12.1+cu113
+- torchvision==0.13.1+cu113
+
+## Methodology
+The FVW approach integrates adversarial attack strategies with a novel attribution algorithm to dissect and evaluate the contribution of individual weights within the network. This granular analysis facilitates a more informed and effective pruning strategy, preserving the integrity and performance of the pruned model.
+
+## Usage
+To employ the FVW methodology for model pruning:
+1. Prepare your environment as per the Installation section.
+2. Load your model and the corresponding pre-pruning weights.
+3. Follow the step-by-step guide in `main.ipynb` to apply the FVW pruning process to your model.
+
+## Citing FVW
+If you utilize this implementation or the FVW methodology in your research, please cite the following paper:
+
 ```
-This command will generate a mask file in the `masks_{dataset}` folder. The mask file is a pickle file, which contains a dictionary with parameters and the mask. The mask is a torch tensor with the same shape as the model parameters. The mask is a binary array, where 1 means the corresponding parameter is kept and 0 means the corresponding parameter is pruned.
-fine-tune the model with the mask
-```bash
-cd ..
-cd finetune
-python finetune.py --dataset cifar10 --masks {mask_path} --finetune --saved_path {saved_path}
+@inproceedings{zhu2023fvw,
+  title={FVW: Finding Valuable Weight on Deep Neural Network for Model Pruning},
+  author={Zhu, Zhiyu and Chen, Huaming and Jin, Zhibo and Wang, Xinyi and Zhang, Jiayu and Xue, Minhui and Lu, Qinghua and Shen, Jun and Choo, Kim-Kwang Raymond},
+  booktitle={Proceedings of the 32nd ACM International Conference on Information and Knowledge Management},
+  pages={3657--3666},
+  year={2023}
+}
 ```
-This command will fine-tune the model with the mask and save the model in the `saved_path` folder.
+
+## Acknowledgments
+We extend our gratitude to the contributors and researchers whose insights and efforts have been instrumental in the development of the FVW methodology.
+
+For further information or inquiries, please refer to the corresponding author(s) of the FVW paper or initiate a discussion in this repository's Issues section.
